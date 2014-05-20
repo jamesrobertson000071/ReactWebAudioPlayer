@@ -1,1 +1,142 @@
-test hello world today
+<head>
+	<script src="libs/react/JSXTransformer.js"></script>
+	<script src="libs/react/react-with-addons.js"></script>
+	<script src="js/audioPlayer.js"></script>
+</head>
+
+
+<div id="container">
+
+
+</div>
+
+<script>
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+context = new AudioContext();
+</script>
+
+<script type="text/jsx">
+
+	/**
+	* @jsx React.DOM
+	*/
+
+	var AudioPlayer = React.createClass({
+		getInitialState:function(){
+			return{
+				audioBuffer:'',
+				currentPosition:0
+			}
+		},
+		componentDidMount:function(){
+		  var self = this;
+		  var request = new XMLHttpRequest();
+		  request.open('GET', this.props.audioUrl, true);
+		  request.responseType = 'arraybuffer';
+		  request.onload = function() {
+		    self.props.audioContext.decodeAudioData(request.response, function(buffer) {
+		    	self.setState({audioBuffer:buffer});
+		    });
+		  }
+		  request.send();
+		},
+		render : function() {
+		  return (
+		  	<div>
+				<Artwork artworkUrl={this.props.artworkUrl}/>
+				<TrackControl audioBuffer={this.state.audioBuffer} audioContext={this.props.audioContext}/>
+				<VolumeControl />
+			</div>
+			);
+		}
+	});
+
+	var Artwork = React.createClass({
+		render : function() {
+		  return ( 
+		  	<img src={this.props.artworkUrl} />
+	  		);
+		}
+	});
+
+	var TrackControl = React.createClass({
+		getInitialState:function(){
+			return {
+				audioBuffer:'',
+				source:'',
+				currentPosition:0,
+				playing:false,
+				setIntervalId:''
+			};
+		},
+		updateCurrentPosition:function(){
+			var self = this;
+			var intervalId = setInterval(function(){
+				self.setState({currentPosition:self.props.audioContext.currentTime})
+			},200);
+			this.setState({setIntervalId:intervalId});
+		},
+		stopUpdatingCurrentPostion:function(){
+			clearInterval(this.state.setIntervalId);
+		},
+		play:function(){ 
+	      this.updateCurrentPosition();
+		  if(this.props.audioBuffer){   
+		  	  var source = this.props.audioContext.createBufferSource(); 
+			  source.buffer = this.props.audioBuffer;                    
+			  source.connect(this.props.audioContext.destination); 
+			  source.noteOn(0);
+			  this.setState({source:source});
+			}                       	                                             
+		},
+		pause:function(){
+			this.stopUpdatingCurrentPostion();
+			this.state.source.noteOff(0);
+		},
+		render : function() {
+		  return (
+		  	<div class="controls">
+		  		<ProgressBar currentPosition={this.state.currentPosition}/>
+	  			<div onClick={this.play}>play</div>
+	  			<div onClick={this.pause}>pause</div>
+  			</div>
+  			);
+		}
+	});
+
+	var ProgressBar = React.createClass({
+		render : function() {
+		progressBarStyle = {
+			height:"4px",
+			background:"lightgray"
+		};
+		currentPositionStyle = {
+			height:"4px",
+			width:"20px",
+			marginLeft:this.props.currentPosition,
+			background:"gray"
+		};
+		  return ( 
+		  	<div style={progressBarStyle} class="progress-bar">
+  				<div style={currentPositionStyle} class="current-postion"></div>
+			</div>
+			);
+		}
+	});
+
+	var VolumeControl = React.createClass({
+		render: function(){
+			return (
+			<div class="voume-control"></div>
+			)
+		}
+	})
+
+	React.renderComponent(
+		<AudioPlayer artworkUrl="https://i2.sndcdn.com/artworks-000060954750-msjg4s-t500x500.jpg?30a2558" audioUrl="http://localhost:8080/demoSound.wav" audioContext={context}/>,
+		document.body
+	);
+
+</script>
+
+<!-- hi -->
