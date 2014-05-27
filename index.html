@@ -1,14 +1,14 @@
 <head>
 	<script src="libs/react/JSXTransformer.js"></script>
 	<script src="libs/react/react-with-addons.js"></script>
-	<script src="js/audioPlayer.js"></script>
 </head>
 
-
+<body>
 <div id="container">
 
 
 </div>
+</body>
 
 <script>
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -66,7 +66,9 @@ context = new AudioContext();
 				source:'',
 				currentPosition:0,
 				playing:false,
-				setIntervalId:''
+				setIntervalId:'',
+				startedAt:0,
+				pausedAt:0
 			};
 		},
 		updateCurrentPosition:function(){
@@ -85,13 +87,15 @@ context = new AudioContext();
 		  	  var source = this.props.audioContext.createBufferSource(); 
 			  source.buffer = this.props.audioBuffer;                    
 			  source.connect(this.props.audioContext.destination); 
-			  source.noteOn(0);
+			  source.start(0,this.state.pausedAt/1000);
 			  this.setState({source:source});
+			  this.setState({startedAt:Date.now()});
 			}                       	                                             
 		},
 		pause:function(){
+			this.setState({pausedAt:Date.now() - this.state.startedAt});
 			this.stopUpdatingCurrentPostion();
-			this.state.source.noteOff(0);
+			this.state.source.stop(0);
 		},
 		render : function() {
 		  return (
@@ -138,5 +142,3 @@ context = new AudioContext();
 	);
 
 </script>
-
-<!-- hi world -->
