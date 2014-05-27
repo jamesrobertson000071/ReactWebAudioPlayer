@@ -1,1 +1,1 @@
-read me
+A simple react component for playing audio
