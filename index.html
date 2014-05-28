@@ -74,7 +74,10 @@ context = new AudioContext();
 		updateCurrentPosition:function(){
 			var self = this;
 			var intervalId = setInterval(function(){
-				self.setState({currentPosition:self.props.audioContext.currentTime})
+				var currentTime = self.props.audioContext.currentTime;
+				var pausedAt = self.state.pausedAt/1000;
+				var overAllDuration = self.state.source.buffer.duration;
+				self.setState({currentPosition:((currentTime-pausedAt)/overAllDuration)*100})
 			},200);
 			this.setState({setIntervalId:intervalId});
 		},
@@ -85,7 +88,7 @@ context = new AudioContext();
 	      this.updateCurrentPosition();
 		  if(this.props.audioBuffer){   
 		  	  var source = this.props.audioContext.createBufferSource(); 
-			  source.buffer = this.props.audioBuffer;                    
+			  source.buffer = this.props.audioBuffer;                 
 			  source.connect(this.props.audioContext.destination); 
 			  source.start(0,this.state.pausedAt/1000);
 			  this.setState({source:source});
@@ -117,7 +120,7 @@ context = new AudioContext();
 		currentPositionStyle = {
 			height:"4px",
 			width:"20px",
-			marginLeft:this.props.currentPosition,
+			marginLeft:this.props.currentPosition+'%',
 			background:"gray"
 		};
 		  return ( 
